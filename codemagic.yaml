@@ -12,21 +12,23 @@ workflows:
         PACKAGE_NAME: dev.dgren.testapp
         APP_ENV: staging
         APP_ID: 6448302992
+      groups:
+        - APPLE
 
     scripts:
       - name: Setup enviroment
-      script: |
-        #!/bin/sh
+        script: |
+          #!/bin/sh
       - name: Install dependencies
         script: |
           yarn install
 
       - name: Install CocoaPods dependencies
-      script: |
-        cd ios && pod install
+        script: |
+          cd ios && pod install
 
       - name: Set up keychain to be used for codesigning using Codemagic CLI 'keychain' command
-      script: |
+        script: |
           keychain initialize
       - name: Use system default keychain
         script: |
