@@ -12,6 +12,8 @@ workflows:
         PACKAGE_NAME: dev.dgren.testapp
         APP_ENV: staging
         APP_ID: 6448302992
+        XCODE_WORKSPACE: Test.xcworkspace
+        XCODE_SCHEME: Test
       groups:
         - APPLE
 
