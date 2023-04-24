@@ -18,7 +18,7 @@ workflows:
     scripts:
       - name: Setup enviroment
         script: |
-          #!/bin/sh
+          echo "env setup"
       - name: Install dependencies
         script: |
           yarn install
