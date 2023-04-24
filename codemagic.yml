@@ -1,0 +1,62 @@
+workflows:
+  ios-staging:
+    name: iOS Staging
+    max_build_duration: 120
+    instance_type: mac_mini_m1
+
+    environment:
+      ios_signing:
+        distribution_type: app_store # or: ad_hoc | development | enterprise
+        bundle_identifier: dev.dgren.testapp
+      vars:
+        PACKAGE_NAME: dev.dgren.testapp
+        APP_ENV: staging
+        APP_ID: 6448302992
+
+    scripts:
+      - name: Setup enviroment
+      script: |
+        #!/bin/sh
+      - name: Install dependencies
+        script: |
+          yarn install
+
+      - name: Install CocoaPods dependencies
+      script: |
+        cd ios && pod install
+
+      - name: Set up keychain to be used for codesigning using Codemagic CLI 'keychain' command
+      script: |
+          keychain initialize
+      - name: Use system default keychain
+        script: |
+          keychain add-certificates
+      - name: Increment build number
+        script: |
+          #!/bin/sh
+          set -e
+          set -x
+          cd $FCI_BUILD_DIR/ios
+          agvtool new-version -all $(($(app-store-connect get-latest-testflight-build-number "$APP_STORE_APP_ID") + 1))
+      - name: Set up code signing settings on Xcode project
+        script: |
+          xcode-project use-profiles --warn-only
+      - name: Build ipa for distribution
+        script: |
+          xcode-project build-ipa --workspace "$FCI_BUILD_DIR/ios/$XCODE_WORKSPACE" --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+    publishing:
+      # See the following link for details about email publishing - https://docs.codemagic.io/publishing-yaml/distribution/#email
+      email:
+        recipients:
+          - eric@dgren.dev
+        notify:
+          success: false # To not receive a notification when a build succeeds
+          failure: true # To not receive a notification when a build fails
+      app_store_connect:
+        apple_id: $APPLE_ID
+        password: $APP_SPECIFIC_PASSWORD
